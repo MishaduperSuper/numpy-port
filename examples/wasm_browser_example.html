@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>numpy-port wasm example</title>
+</head>
+<body>
+  <h1>numpy-port WASM demo</h1>
+  <pre id="output"></pre>
+
+  <script src="../build-wasm/numpy_port.js"></script>
+  <script>
+    const output = document.getElementById("output");
+    Module.onRuntimeInitialized = () => {
+      const shapePtr = Module._malloc(2 * 4);
+      Module.setValue(shapePtr, 2, "i32");
+      Module.setValue(shapePtr + 4, 2, "i32");
+
+      const a = Module._np_create_array(shapePtr, 2, 0);
+      const b = Module._np_create_array(shapePtr, 2, 0);
+
+      const aData = Module._np_array_data(a);
+      const bData = Module._np_array_data(b);
+
+      const f32 = Module.HEAPF32;
+      f32[aData / 4 + 0] = 1;
+      f32[aData / 4 + 1] = 2;
+      f32[aData / 4 + 2] = 3;
+      f32[aData / 4 + 3] = 4;
+
+      f32[bData / 4 + 0] = 5;
+      f32[bData / 4 + 1] = 6;
+      f32[bData / 4 + 2] = 7;
+      f32[bData / 4 + 3] = 8;
+
+      const c = Module._np_add_arrays(a, b);
+      const cData = Module._np_array_data(c);
+      output.textContent = `add: ${f32[cData / 4 + 0]}, ${f32[cData / 4 + 1]}`;
+
+      Module._np_free_array(a);
+      Module._np_free_array(b);
+      Module._np_free_array(c);
+      Module._free(shapePtr);
+    };
+  </script>
+</body>
+</html>
